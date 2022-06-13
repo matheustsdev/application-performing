@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { GenreResponseProps } from "../App";
 import { Button } from "./Button";
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { api } from "./services/api";
 
@@ -18,6 +18,7 @@ export interface MovieProps {
   imdbID: string;
   Title: string;
   Poster: string;
+  Genre_id: number;
   Ratings: Array<{
     Source: string;
     Value: string;
@@ -39,15 +40,12 @@ export function App() {
     api.get<GenreResponseProps[]>("genres").then((response) => {
       setGenres(response.data);
     });
+    api.get<MovieProps[]>(`movies/`).then((response) => {
+      setMovies(response.data);
+    });
   }, []);
 
   useEffect(() => {
-    api
-      .get<MovieProps[]>(`movies/?Genre_id=${selectedGenreId}`)
-      .then((response) => {
-        setMovies(response.data);
-      });
-
     api
       .get<GenreResponseProps>(`genres/${selectedGenreId}`)
       .then((response) => {
@@ -55,14 +53,25 @@ export function App() {
       });
   }, [selectedGenreId]);
 
+  const handleSelectGenre = useCallback((id: number) => {
+    setSelectedGenreId(id);
+  }, []);
+
+  const moviesByGenre = useMemo(() => {
+    const allMovies = movies;
+    return allMovies.filter((movie) => {
+      return movie.Genre_id === selectedGenreId;
+    });
+  }, [selectedGenre]);
+
   return (
     <div style={{ display: "flex", flexDirection: "row" }}>
       <SideBar
         genreList={genres}
         selectedGenreId={selectedGenre.id}
-        handleSelectGenre={setSelectedGenreId}
+        handleSelectGenre={handleSelectGenre}
       />
-      <Content movies={movies} genre={selectedGenre.title} />
+      <Content movies={moviesByGenre} genre={selectedGenre.title} />
     </div>
   );
 }
